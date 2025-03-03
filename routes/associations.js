@@ -9,7 +9,7 @@ const { checkBody } = require('../modules/checkBody');
 router.post('/creation', (req, res) => {
 
   //Check of missing mandatory fields
-  if (!checkBody(req.body, ['name', 'description', 'nationalities', 'categories', ])) {
+  if (!checkBody(req.body, ['name', 'description', 'nationalities', 'categories', 'residenceCountry' ])) {
     res.json({ result: false, error: 'Missing or empty fields' });
     return;
   }
@@ -23,6 +23,7 @@ router.post('/creation', (req, res) => {
         name: req.body.name, // required
         description: req.body.description, // required
         nationalities: req.body.nationalities, // required
+        residenceCountry: req.body.residenceCountry, //required
         categories: req.body.categories, // required
         languages: req.body.languages,
         interventionZone: req.body.interventionZone,

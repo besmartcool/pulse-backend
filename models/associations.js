@@ -23,6 +23,7 @@ const associationSchema = mongoose.Schema({
   name: String, // required
   description: String, // required
   nationalities: [String], // required
+  residenceCountry: String, // required
   categories: [String], // required
   languages: [String],
   interventionZone: [String],
