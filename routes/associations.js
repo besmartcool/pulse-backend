@@ -25,22 +25,22 @@ router.post('/creation', (req, res) => {
         nationalities: req.body.nationalities, // required
         categories: req.body.categories, // required
         languages: req.body.languages,
-        interventionZone: [String],
-        declarationDate: Date,
-        creationDate: Date,
-        legalNumber: String,
-        gallery: [String],
-        history: [String],
-        missions:[String],
-        address: addressSchema,
-        phone: [String],
-        email: String,
-        members: [memberSchema],
-        socialNetworks: [socialNetworkSchema],
+        interventionZone: req.body.interventionZone,
+        lastDeclarationDate: req.body.declarationDate,
+        creationDate: req.body.creationDate,
+        legalNumber: req.body.legalNumber,
+        gallery: req.body.gallery,
+        history: req.body.history,
+        missions:req.body.missions,
+        address: req.body.address,
+        phone: req.body.phone,
+        email: req.body.email,
+        members: req.body.members,
+        socialNetworks: req.body.socialNetworks,
       });
 
       newAssociation.save().then(newAssociation => {
-        res.json({ result: true, newAssociation });
+        res.json({ result: true, newAssociation: newAssociation._id });
       });
     } else {
 

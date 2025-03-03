@@ -26,7 +26,7 @@ const associationSchema = mongoose.Schema({
   categories: [String], // required
   languages: [String],
   interventionZone: [String],
-  declarationDate: Date,
+  lastDeclarationDate: Date,
   creationDate: Date,
   legalNumber: String,
   gallery: [String],
