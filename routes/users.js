@@ -15,7 +15,8 @@ router.post("/signup", (req, res) => {
   };
   const hash = bcrypt.hashSync(req.body.password, 10);
 
-  User.findOne({ username: req.body.username }).then((data) => {
+  
+  User.findOne({ email: req.body.email }).then((data) => {
     if (data === null) {
       const newUser = new User({
         username: req.body.username,
@@ -31,12 +32,28 @@ router.post("/signup", (req, res) => {
       });
 
       newUser.save().then((user) => {
-        res.json({ result: true, token: user.token, firstname: user.firstname });
+        res.json({ result: true, token: user.token, username: user.username });
       });
     } else {
       res.json({ result: false, error: "User already exists" });
     }
   });
+  });
+
+
+  router.post("/signin", (req, res) => {
+    if (!checkBody(req.body, ["email", "password"])) {
+      res.json({ result: false, error: "Missing or empty fields" });
+      return;
+    }
+  
+    User.findOne({ email: req.body.email }).then((data) => {
+      if (data && bcrypt.compareSync(req.body.password, data.password)) {
+        res.json({ result: true, token: data.token, username: data.username });
+      } else {
+        res.json({ result: false, error: "User not found or wrong password" });
+      }
+    });
   });
 
 
