@@ -72,4 +72,16 @@ router.get("/all", (req, res) => {
     });
 });
 
+// ROUTE GET CATEGORIES
+router.get("/categories", (req, res) => {
+
+Association.find({ categorie2: "Solidarité"}).limit(10).then((data) => {
+  res.json(data);
+})
+.catch((err) => {
+  res.status(500).json({ error: "Internal Server Error" });
+});
+
+})
+
 module.exports = router;
