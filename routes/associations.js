@@ -73,15 +73,31 @@ router.get("/all", (req, res) => {
 });
 
 // ROUTE GET CATEGORIES
-router.get("/categories", (req, res) => {
+router.get("/categories/:category", (req, res) => {
+  const category = req.params.category;
 
-Association.find({ categorie2: "Solidarité"}).limit(10).then((data) => {
-  res.json(data);
-})
-.catch((err) => {
-  res.status(500).json({ error: "Internal Server Error" });
+  Association.find({ categorie: category })
+    .limit(50)
+    .then((data) => {
+      res.json({ result: true, associations: data });
+    })
+    .catch((err) => {
+      res.status(500).json({ result: false, error: "Internal Server Error" });
+    });
 });
 
-})
+router.get("/countries/:country", (req, res) => {
+  const country = req.params.country;
+
+  Association.find({ nationality: country })
+    .limit(50)
+    .then((data) => {
+      res.json({ result: true, associations: data });
+    })
+    .catch((err) => {
+      res.status(500).json({ result: false, error: "Internal Server Error" });
+    });
+});
+
 
 module.exports = router;
