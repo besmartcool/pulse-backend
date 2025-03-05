@@ -72,11 +72,24 @@ router.get("/all", (req, res) => {
     });
 });
 
-// ROUTE GET CATEGORIES
-router.get("/categories/:category", (req, res) => {
-  const category = req.params.category;
+router.get("/search", (req, res) => {
+  const { country, city, category } = req.query;
 
-  Association.find({ categorie: category })
+  let filter = {};
+
+  if (country) {
+    filter["address.country"] = country.toUpperCase();
+  }
+  if (city) {
+    filter["address.city"] = city.toUpperCase();
+  }
+  if (category) {
+    filter["categorie"] = category;
+  }
+
+  console.log(filter)
+
+  Association.find(filter)
     .limit(50)
     .then((data) => {
       res.json({ result: true, associations: data });
@@ -86,18 +99,6 @@ router.get("/categories/:category", (req, res) => {
     });
 });
 
-router.get("/countries/:country", (req, res) => {
-  const country = req.params.country;
-
-  Association.find({ nationality: country })
-    .limit(50)
-    .then((data) => {
-      res.json({ result: true, associations: data });
-    })
-    .catch((err) => {
-      res.status(500).json({ result: false, error: "Internal Server Error" });
-    });
-});
 
 
 module.exports = router;
