@@ -3,9 +3,12 @@ var router = express.Router();
 
 require("../models/connection");
 const Association = require("../models/associations");
+const User = require("../models/users");
 const { checkBody } = require("../modules/checkBody");
+const { checkToken } = require("../middlewares/auth");
 
-router.post("/creation", (req, res) => {
+router.post("/creation", checkToken, (req, res) => {
+  console.log(req.body);
   //Check of missing mandatory fields
   if (
     !checkBody(req.body, [
@@ -26,6 +29,7 @@ router.post("/creation", (req, res) => {
     name: { $regex: new RegExp(req.body.name, "i") },
   }).then((data) => {
     if (data === null) {
+
       const newAssociation = new Association({
         name: req.body.name, // required
         description: req.body.description, // required
@@ -43,7 +47,10 @@ router.post("/creation", (req, res) => {
         address: req.body.address,
         phone: req.body.phone,
         email: req.body.email,
-        members: req.body.members,
+        members: {
+            userID: req.user._id,
+            role: "admin",
+        },
         socialNetworks: req.body.socialNetworks,
       });
 
@@ -87,7 +94,7 @@ router.get("/search", (req, res) => {
     filter["categorie"] = category;
   }
 
-  console.log(filter)
+  console.log(filter);
 
   Association.find(filter)
     .limit(50)
@@ -98,7 +105,5 @@ router.get("/search", (req, res) => {
       res.status(500).json({ result: false, error: "Internal Server Error" });
     });
 });
-
-
 
 module.exports = router;
