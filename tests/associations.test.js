@@ -18,27 +18,10 @@ describe("GET /associations/randomall", () => {
   beforeAll(() => { // AVANT TOUT, ON EXECUTE CECI :
     return mongoose // CONNECTION À LA BDD
       .connect(process.env.CONNECTION_STRING)
-      .then(() => {
-        return Association.insertMany([ // ON AJOUTE À LA BDD DES INFOS À TESTER
-          {
-            name: "Association A",
-            description: "Description de l'asso A",
-            categories: ["Social"],
-          },
-          {
-            name: "Association B",
-            description: "Description de l'asso B",
-            categories: ["Education"],
-          },
-        ]);
-      });
   });
 
   afterAll(() => { // APRÈS TOUT, ON EXECUTE CECI :
-    return Association.deleteMany({ // ON SUPPRIME UNIQUEMENT CE QUE L'ON VIENT DE CRÉER DANS LA BDD
-      name: { $in: ["Association A", "Association B"] },
-    })
-    .then(() => mongoose.connection.close());
+    return mongoose.connection.close()
   });
 
   it("Should return up to 50 random associations", () => { // TEST
@@ -48,6 +31,8 @@ describe("GET /associations/randomall", () => {
       .expect(200)
       .then((res) => {
         expect(res.statusCode).toBe(200);
+        expect(res.body.result).toBe(true);
+        expect(res.body.data.length).toBeLessThanOrEqual(50);
       });
   });
 });
