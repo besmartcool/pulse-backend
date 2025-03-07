@@ -1,6 +1,8 @@
 var express = require("express");
 var router = express.Router();
 
+const mongoose = require("mongoose"); // ✅ Ajout de mongoose
+
 require("../models/connection");
 const Association = require("../models/associations");
 const User = require("../models/users");
@@ -110,5 +112,57 @@ router.get("/search", (req, res) => {
       res.status(500).json({ result: false, error: "Internal Server Error" });
     });
 });
+/* 
+router.post("/addMembers", async (req, res) => {
+  try {
+    console.log("Début de l'ajout des membres");
+
+    const associations = await Association.find();
+    console.log(`Nombre d'associations trouvées : ${associations.length}`);
+
+    if (!associations.length) {
+      return res.json({ result: false, message: "No associations found" });
+    }
+
+    const uniqueRoles = ["Président(e)", "Vice-président(e)", "Secrétaire", "Trésorier(e)"];
+    const names = [
+      "Alice Dupont", "Jean Martin", "Sophie Bernard", "Thomas Lefevre",
+      "Emma Moreau", "Lucas Dubois", "Camille Lambert", "Nathan Rousseau",
+      "Chloé Vincent", "Léo Girard"
+    ];
+
+    const generateMember = (name, role) => {
+      console.log(`Création du membre : ${name} avec le rôle ${role}`);
+      return {
+        userID: new mongoose.Types.ObjectId(),
+        name: name,
+        role: role,
+      };
+    };
+
+    for (let association of associations) {
+      let members = [];
+
+      for (let i = 0; i < uniqueRoles.length; i++) {
+        members.push(generateMember(names[i], uniqueRoles[i]));
+      }
+
+      for (let i = uniqueRoles.length; i < names.length; i++) {
+        members.push(generateMember(names[i], "Membre actif"));
+      }
+
+      console.log(`Ajout des membres à l'association : ${association.name}`);
+      association.members = [...association.members, ...members];
+      await association.save();
+      console.log(`Membres ajoutés à l'association ${association.name}`);
+    }
+
+    res.json({ result: true, message: "Members added successfully to all associations" });
+  } catch (error) {
+    console.error("Error adding members to associations:", error);
+    res.status(500).json({ result: false, error: error.message });
+  }
+}); */
+
 
 module.exports = router;

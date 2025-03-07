@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const addressSchema = mongoose.Schema({
     street: String,
-    zipcode: Number,
+    zipCode: Number,
     city: String,
     department: String,
     country: String,
@@ -14,31 +14,32 @@ const socialNetworkSchema = mongoose.Schema({
 })
 
 const memberSchema = mongoose.Schema({
-    userID: { type: mongoose.Schema.Types.ObjectId, ref: 'users' },
+    name: String,
     role: String,
 })
 
 
 const associationSchema = mongoose.Schema({
-  name: String, // required
-  description: String, // required
-  nationalities: [String], // required
-  residenceCountry: String, // required
-  categories: [String], // required
-  languages: [String],
-  interventionZone: [String],
-  lastDeclarationDate: Date,
-  creationDate: Date,
-  legalNumber: String,
-  gallery: [String],
-  history: [String],
-  missions:[String],
-  address: addressSchema,
-  phone: [String],
-  email: String,
-  members: [memberSchema],
-  socialNetworks: [socialNetworkSchema],
-});
+    name: { type: String, required: true },
+    nationality: [String], // ✅ Correction du champ "nationalities" → "nationality"
+    languages: [String],
+    interventionZone: [String],
+    residenceCountry: [String],
+    description: { type: String, required: true },
+    categorie: String, // ✅ Correction du champ "categories" → "categorie"
+    categorieNumber: Number, // ✅ Ajout de "categorieNumber"
+    lastDeclarationDate: String,
+    creationDate: String,
+    legalNumber: String,
+    gallery: [String],
+    history: [String],
+    missions: [String],
+    address: addressSchema,
+    phone: [String],
+    email: [String],
+    members: [memberSchema], // ✅ Correction de la structure des membres
+    socialNetworks: [socialNetworkSchema],
+  });
 
 const Association = mongoose.model('associations', associationSchema);
 
