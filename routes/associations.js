@@ -165,4 +165,19 @@ router.post("/addMembers", async (req, res) => {
 }); */
 
 
+
+// ROUTE GET ASSOCIATIONS BY ID
+router.post("/getByIds", checkToken, (req, res) => {
+
+  console.log(req.body);
+  Association.find({ _id: { $in: req.body.ids } })
+    .then((data) => {
+      res.json({result: true, data});
+    })
+    .catch((err) => {
+      res.status(500).json({ result: false, error: "Internal Server Error" });
+    });
+});
+
+
 module.exports = router;
