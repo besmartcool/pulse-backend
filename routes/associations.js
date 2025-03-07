@@ -65,18 +65,23 @@ router.post("/creation", checkToken, (req, res) => {
   });
 });
 
-// ROUTE GET ALEATOIRE ASSOCIATION
-
-router.get("/all", (req, res) => {
-  let limit = 15;
+// ROUTE GET ALEATOIRE ASSOCIATIONS
+router.get("/randomall", (req, res) => {
+  let limit = 50;
 
   Association.aggregate([{ $sample: { size: limit } }])
     .then((data) => {
       res.json(data);
     })
-    .catch((err) => {
-      res.status(500).json({ error: "Internal Server Error" });
-    });
+});
+
+// ROUTE GET ASSOCIATIONS
+router.get("/all", (req, res) => {
+
+  Association.find().limit(20)
+    .then((data) => {
+      res.json(data);
+    })
 });
 
 router.get("/search", (req, res) => {
