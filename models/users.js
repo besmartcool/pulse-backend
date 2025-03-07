@@ -12,7 +12,6 @@ const userSchema = mongoose.Schema({
     residenceCountry: String,
     nationality: String,
     destinationCountry: String,
-    profilPicture: String,
     favorites: [{ type: mongoose.Schema.Types.ObjectId, ref: 'associations' }],
     associations: [{ type: mongoose.Schema.Types.ObjectId, ref: 'associations' }],
 
