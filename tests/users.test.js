@@ -14,7 +14,7 @@ afterAll(async () => {
     await mongoose.connection.close();
   });
 
-  // Test pour tester la route signup de l'application
+  // Test de la route signup de l'application
 it('POST /users/signup', async () => {
    
     const res = await request(app).post('/users/signup').send({
@@ -26,7 +26,7 @@ it('POST /users/signup', async () => {
     expect(res.body.result).toBe(true);
    });
 
-// Test pour tester la route signin de l'application
+// Test de la route signin de l'application
 
    it('POST /users/signin', async () => {
    
