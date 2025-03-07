@@ -17,10 +17,7 @@ describe("Test the root path", () => {
 describe("GET /associations/randomall", () => {
   beforeAll(() => { // AVANT TOUT, ON EXECUTE CECI :
     return mongoose // CONNECTION À LA BDD
-      .connect(process.env.CONNECTION_STRING, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-      })
+      .connect(process.env.CONNECTION_STRING)
       .then(() => {
         return Association.insertMany([ // ON AJOUTE À LA BDD DES INFOS À TESTER
           {
