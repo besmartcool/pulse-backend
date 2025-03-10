@@ -14,19 +14,19 @@ const socialNetworkSchema = mongoose.Schema({
 })
 
 const memberSchema = mongoose.Schema({
-    name: String,
+    name: [{ type: mongoose.Schema.Types.ObjectId, ref: 'users' }],
     role: String,
 })
 
 
 const associationSchema = mongoose.Schema({
     name: { type: String, required: true },
-    nationality: [String], // ✅ Correction du champ "nationalities" → "nationality"
+    nationality: { type: String, required: true }, // ✅ Correction du champ "nationalities" → "nationality"
     languages: [String],
     interventionZone: [String],
-    residenceCountry: [String],
+    residenceCountry: { type: String, required: true },
     description: { type: String, required: true },
-    categorie: String, // ✅ Correction du champ "categories" → "categorie"
+    categorie: { type: String, required: true }, // ✅ Correction du champ "categories" → "categorie"
     categorieNumber: Number, // ✅ Ajout de "categorieNumber"
     lastDeclarationDate: String,
     creationDate: String,
