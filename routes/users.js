@@ -1,9 +1,10 @@
-var express = require('express');
+var express = require("express");
 var router = express.Router();
 
 require("../models/connection");
 const User = require("../models/users");
 const { checkBody } = require("../modules/checkBody");
+const { checkToken } = require("../middlewares/auth");
 
 const uid2 = require("uid2");
 const bcrypt = require("bcrypt");
@@ -12,10 +13,9 @@ router.post("/signup", (req, res) => {
   if (!checkBody(req.body, ["email", "password"])) {
     res.json({ result: false, error: "Missing or empty fields" });
     return;
-  };
+  }
   const hash = bcrypt.hashSync(req.body.password, 10);
 
-  
   User.findOne({ email: req.body.email }).then((data) => {
     if (data === null) {
       const newUser = new User({
@@ -31,27 +31,28 @@ router.post("/signup", (req, res) => {
       res.json({ result: false, error: "User already exists" });
     }
   });
-  });
+});
 
-
-  router.post("/signin", (req, res) => {
-    if (!checkBody(req.body, ["email", "password"])) {
-      res.json({ result: false, error: "Missing or empty fields" });
-      return;
+router.post("/signin", (req, res) => {
+  if (!checkBody(req.body, ["email", "password"])) {
+    res.json({ result: false, error: "Missing or empty fields" });
+    return;
+  }
+  console.log(req.body);
+  User.findOne({ email: req.body.email }).then((data) => {
+    if (data && bcrypt.compareSync(req.body.password, data.password)) {
+      res.json({ result: true, token: data.token });
+    } else {
+      res.json({ result: false, error: "User not found or wrong password" });
     }
-  console.log(req.body)
-    User.findOne({ email: req.body.email }).then((data) => {
-      if (data && bcrypt.compareSync(req.body.password, data.password)) {
-        res.json({ result: true, token: data.token });
-      } else {
-        res.json({ result: false, error: "User not found or wrong password" });
-      }
-    });
   });
+});
 
-  router.post("/", (req, res) => {
-   
-    User.updateMany({ token: req.body.token }, {
+router.put("/", (req, res) => {
+  console.log(req.body.token);
+  User.updateOne(
+    { token: req.body.token },
+    {
       username: req.body.username,
       firstname: req.body.firstname,
       lastname: req.body.lastname,
@@ -59,12 +60,24 @@ router.post("/signup", (req, res) => {
       nationality: req.body.nationality,
       destinationCountry: req.body.destinationCountry,
       // profilePicture: req.body.profilePicture,
-    }).then((data) => {
-      res.json({ result: true,  });
-        });
-  
-      });
-       
+    }
+  ).then((data) => {
+    if (data.result) {
+      res.json({ result: true });
+    } else {
+      res.json({ result: false, error: "error" });
+    }
+  });
+});
 
+
+router.post("/getInfos", checkToken, (req, res) => {
+  User.findOne(
+    { token: req.body.token },
+  ).then((data) => {
+    
+    res.json({ result: true, data });
+  })
+})
 
 module.exports = router;
