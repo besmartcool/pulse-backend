@@ -15,8 +15,8 @@ router.post("/creation", checkToken, (req, res) => {
     !checkBody(req.body, [
       "name",
       "description",
-      "nationalities",
-      "categories",
+      "nationality",
+      "category",
       "residenceCountry",
     ])
   ) {
@@ -29,13 +29,12 @@ router.post("/creation", checkToken, (req, res) => {
     name: { $regex: new RegExp(req.body.name, "i") },
   }).then((data) => {
     if (data === null) {
-
       const newAssociation = new Association({
         name: req.body.name, // required
         description: req.body.description, // required
         nationality: req.body.nationality, // required
         residenceCountry: req.body.residenceCountry, //required
-        categorie: req.body.categorie, // required
+        category: req.body.category, // required
         languages: req.body.languages,
         interventionZone: req.body.interventionZone,
         lastDeclarationDate: req.body.declarationDate,
@@ -48,8 +47,9 @@ router.post("/creation", checkToken, (req, res) => {
         phone: req.body.phone,
         email: req.body.email,
         members: {
-            userID: req.user._id,
-            role: "admin",
+          name: "Dummy Name",
+          userID: req.user._id,
+          role: "admin",
         },
         socialNetworks: req.body.socialNetworks,
       });
@@ -57,16 +57,20 @@ router.post("/creation", checkToken, (req, res) => {
       newAssociation.save().then((newAssociation) => {
         User.updateOne(
           { _id: req.user._id },
-          { associations: [...req.user.associations, newAssociation._id ] }
-         ).then((data) => {
+          { associations: [...req.user.associations, newAssociation._id] }
+        ).then((data) => {
           if (data.modifiedCount === 1) {
-            console.log("nouvelle asso correctement ajoutée aux assos de l'utilisateur")
+            console.log(
+              "nouvelle asso correctement ajoutée aux assos de l'utilisateur"
+            );
             res.json({ result: true, newAssociation: newAssociation._id });
           } else {
-            console.log("Attention, nouvelle asso pas ajoutée aux assos de l'utilisateur")
-            res.json({ result: true, newAssociation: newAssociation._id })
+            console.log(
+              "Attention, nouvelle asso pas ajoutée aux assos de l'utilisateur"
+            );
+            res.json({ result: true, newAssociation: newAssociation._id });
           }
-         });
+        });
       });
     } else {
       // User already exists in database
@@ -80,19 +84,18 @@ router.post("/creation", checkToken, (req, res) => {
 router.get("/randomall", (req, res) => {
   let limit = 50;
 
-  Association.aggregate([{ $sample: { size: limit } }])
-    .then((data) => {
-      res.json({ result: true, data });
-    })
+  Association.aggregate([{ $sample: { size: limit } }]).then((data) => {
+    res.json({ result: true, data });
+  });
 });
 
 // ROUTE GET ASSOCIATIONS
 router.get("/all", (req, res) => {
-
-  Association.find().limit(50)
+  Association.find()
+    .limit(50)
     .then((data) => {
       res.json(data);
-    })
+    });
 });
 
 router.get("/search", (req, res) => {
@@ -107,7 +110,7 @@ router.get("/search", (req, res) => {
     filter["address.city"] = city.toUpperCase();
   }
   if (category) {
-    filter["categorie"] = category;
+    filter["category"] = category;
   }
 
   console.log(filter);
@@ -121,13 +124,11 @@ router.get("/search", (req, res) => {
       res.status(500).json({ result: false, error: "Internal Server Error" });
     });
 });
-/* 
-router.post("/addMembers", async (req, res) => {
+
+/* router.post("/addMembers", async (req, res) => {
   try {
-    console.log("Début de l'ajout des membres");
 
     const associations = await Association.find();
-    console.log(`Nombre d'associations trouvées : ${associations.length}`);
 
     if (!associations.length) {
       return res.json({ result: false, message: "No associations found" });
@@ -160,10 +161,8 @@ router.post("/addMembers", async (req, res) => {
         members.push(generateMember(names[i], "Membre actif"));
       }
 
-      console.log(`Ajout des membres à l'association : ${association.name}`);
       association.members = [...association.members, ...members];
       await association.save();
-      console.log(`Membres ajoutés à l'association ${association.name}`);
     }
 
     res.json({ result: true, message: "Members added successfully to all associations" });
@@ -173,22 +172,17 @@ router.post("/addMembers", async (req, res) => {
   }
 }); */
 
-
-
 // ROUTE GET ASSOCIATIONS BY ID
 router.get("/getAssociationsByIds/:token", checkToken, (req, res) => {
-  User.findOne({token: req.params.token})
-  .then((data) => {
+  User.findOne({ token: req.params.token }).then((data) => {
     Association.find({ _id: { $in: data.associations } })
       .then((data) => {
-        res.json({result: true, data});
+        res.json({ result: true, data });
       })
       .catch((err) => {
         res.status(500).json({ result: false, error: "Internal Server Error" });
       });
   });
-  })
-
-
+});
 
 module.exports = router;
