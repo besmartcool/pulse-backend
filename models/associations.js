@@ -14,7 +14,8 @@ const socialNetworkSchema = mongoose.Schema({
 })
 
 const memberSchema = mongoose.Schema({
-    name: [{ type: mongoose.Schema.Types.ObjectId, ref: 'users' }],
+    name: String,
+    userID: [{ type: mongoose.Schema.Types.ObjectId, ref: 'users' }],
     role: String,
 })
 
@@ -26,7 +27,7 @@ const associationSchema = mongoose.Schema({
     interventionZone: [String],
     residenceCountry: { type: String, required: true },
     description: { type: String, required: true },
-    categorie: { type: String, required: true }, // ✅ Correction du champ "categories" → "categorie"
+    category: { type: String, required: true }, // ✅ Correction du champ "categories" → "categorie"
     categorieNumber: Number, // ✅ Ajout de "categorieNumber"
     lastDeclarationDate: String,
     creationDate: String,
