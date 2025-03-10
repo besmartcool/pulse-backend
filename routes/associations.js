@@ -29,7 +29,6 @@ router.post("/creation", checkToken, (req, res) => {
     name: { $regex: new RegExp(req.body.name, "i") },
   }).then((data) => {
     if (data === null) {
-
       const newAssociation = new Association({
         name: req.body.name, // required
         description: req.body.description, // required
@@ -48,8 +47,9 @@ router.post("/creation", checkToken, (req, res) => {
         phone: req.body.phone,
         email: req.body.email,
         members: {
-            userID: req.user._id,
-            role: "admin",
+          name: "Dummy Name",
+          userID: req.user._id,
+          role: "admin",
         },
         socialNetworks: req.body.socialNetworks,
       });
@@ -57,16 +57,20 @@ router.post("/creation", checkToken, (req, res) => {
       newAssociation.save().then((newAssociation) => {
         User.updateOne(
           { _id: req.user._id },
-          { associations: [...req.user.associations, newAssociation._id ] }
-         ).then((data) => {
+          { associations: [...req.user.associations, newAssociation._id] }
+        ).then((data) => {
           if (data.modifiedCount === 1) {
-            console.log("nouvelle asso correctement ajoutée aux assos de l'utilisateur")
+            console.log(
+              "nouvelle asso correctement ajoutée aux assos de l'utilisateur"
+            );
             res.json({ result: true, newAssociation: newAssociation._id });
           } else {
-            console.log("Attention, nouvelle asso pas ajoutée aux assos de l'utilisateur")
-            res.json({ result: true, newAssociation: newAssociation._id })
+            console.log(
+              "Attention, nouvelle asso pas ajoutée aux assos de l'utilisateur"
+            );
+            res.json({ result: true, newAssociation: newAssociation._id });
           }
-         });
+        });
       });
     } else {
       // User already exists in database
@@ -80,19 +84,18 @@ router.post("/creation", checkToken, (req, res) => {
 router.get("/randomall", (req, res) => {
   let limit = 50;
 
-  Association.aggregate([{ $sample: { size: limit } }])
-    .then((data) => {
-      res.json({ result: true, data });
-    })
+  Association.aggregate([{ $sample: { size: limit } }]).then((data) => {
+    res.json({ result: true, data });
+  });
 });
 
 // ROUTE GET ASSOCIATIONS
 router.get("/all", (req, res) => {
-
-  Association.find().limit(50)
+  Association.find()
+    .limit(50)
     .then((data) => {
       res.json(data);
-    })
+    });
 });
 
 router.get("/search", (req, res) => {
@@ -169,22 +172,17 @@ router.get("/search", (req, res) => {
   }
 }); */
 
-
-
 // ROUTE GET ASSOCIATIONS BY ID
 router.get("/getAssociationsByIds/:token", checkToken, (req, res) => {
-  User.findOne({token: req.params.token})
-  .then((data) => {
+  User.findOne({ token: req.params.token }).then((data) => {
     Association.find({ _id: { $in: data.associations } })
       .then((data) => {
-        res.json({result: true, data});
+        res.json({ result: true, data });
       })
       .catch((err) => {
         res.status(500).json({ result: false, error: "Internal Server Error" });
       });
   });
-  })
-
-
+});
 
 module.exports = router;

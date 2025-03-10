@@ -37,7 +37,7 @@ const associationSchema = mongoose.Schema({
     missions: [String],
     address: addressSchema,
     phone: [String],
-    email: [String],
+    email: { type: String, trim: true },
     members: [memberSchema], // ✅ Correction de la structure des membres
     socialNetworks: [socialNetworkSchema],
   });
