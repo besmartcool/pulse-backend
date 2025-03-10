@@ -115,10 +115,8 @@ router.get("/search", (req, res) => {
 /* 
 router.post("/addMembers", async (req, res) => {
   try {
-    console.log("Début de l'ajout des membres");
 
     const associations = await Association.find();
-    console.log(`Nombre d'associations trouvées : ${associations.length}`);
 
     if (!associations.length) {
       return res.json({ result: false, message: "No associations found" });
@@ -151,10 +149,8 @@ router.post("/addMembers", async (req, res) => {
         members.push(generateMember(names[i], "Membre actif"));
       }
 
-      console.log(`Ajout des membres à l'association : ${association.name}`);
       association.members = [...association.members, ...members];
       await association.save();
-      console.log(`Membres ajoutés à l'association ${association.name}`);
     }
 
     res.json({ result: true, message: "Members added successfully to all associations" });
@@ -162,7 +158,7 @@ router.post("/addMembers", async (req, res) => {
     console.error("Error adding members to associations:", error);
     res.status(500).json({ result: false, error: error.message });
   }
-}); */
+});
 
 
 
@@ -177,7 +173,7 @@ router.post("/getByIds", checkToken, (req, res) => {
     .catch((err) => {
       res.status(500).json({ result: false, error: "Internal Server Error" });
     });
-});
+}); */
 
 
 module.exports = router;
