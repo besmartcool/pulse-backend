@@ -15,8 +15,8 @@ router.post("/creation", checkToken, (req, res) => {
     !checkBody(req.body, [
       "name",
       "description",
-      "nationalities",
-      "categories",
+      "nationality",
+      "category",
       "residenceCountry",
     ])
   ) {
@@ -35,7 +35,7 @@ router.post("/creation", checkToken, (req, res) => {
         description: req.body.description, // required
         nationality: req.body.nationality, // required
         residenceCountry: req.body.residenceCountry, //required
-        categorie: req.body.categorie, // required
+        category: req.body.category, // required
         languages: req.body.languages,
         interventionZone: req.body.interventionZone,
         lastDeclarationDate: req.body.declarationDate,
@@ -107,7 +107,7 @@ router.get("/search", (req, res) => {
     filter["address.city"] = city.toUpperCase();
   }
   if (category) {
-    filter["categorie"] = category;
+    filter["category"] = category;
   }
 
   console.log(filter);
