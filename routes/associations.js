@@ -10,7 +10,6 @@ const { checkBody } = require("../modules/checkBody");
 const { checkToken } = require("../middlewares/auth");
 
 router.post("/creation", checkToken, (req, res) => {
-  console.log(req.body);
   //Check of missing mandatory fields
   if (
     !checkBody(req.body, [
@@ -26,7 +25,6 @@ router.post("/creation", checkToken, (req, res) => {
   }
 
   // Check if the association has not already been registered
-
   Association.findOne({
     name: { $regex: new RegExp(req.body.name, "i") },
   }).then((data) => {
@@ -172,6 +170,7 @@ router.post("/getByIds", checkToken, (req, res) => {
   console.log(req.body);
   Association.find({ _id: { $in: req.body.ids } })
     .then((data) => {
+      console.log(data)
       res.json({result: true, data});
     })
     .catch((err) => {
