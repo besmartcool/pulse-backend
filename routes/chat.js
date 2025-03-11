@@ -1,95 +1,76 @@
-var express = require("express");
-var router = express.Router();
-const mongoose = require("mongoose");
+const express = require('express');
+const router = express.Router();
+const Pusher = require('pusher');
+const Message = require('../models/message');
 
-require("../models/connection");
-const Room = require("../models/rooms");
-const Message = require("../models/messages");
-const User = require("../models/users");
-const { checkToken } = require("../middlewares/auth");
-
-// Route pour créer une nouvelle conversation (room) entre deux utilisateurs
-router.post("/create-room", /* checkToken, */ (req, res) => {
-  const { userId1, userId2 } = req.body;
-
-  if (!userId1 || !userId2) {
-    res.json({ result: false, error: "User IDs required" });
-    return;
-  }
-
-  Room.findOne({ users: { $all: [userId1, userId2] } })
-    .then((existingRoom) => {
-      if (existingRoom) {
-        res.json({ result: true, roomId: existingRoom._id });
-      } else {
-        const newRoom = new Room({
-          users: [userId1, userId2],
-          lastMessage: "",
-        });
-
-        newRoom.save().then((savedRoom) => {
-          res.json({ result: true, roomId: savedRoom._id });
-        });
-      }
-    })
-    .catch(() => res.status(500).json({ result: false, error: "Internal Server Error" }));
+const pusher = new Pusher({
+  appId: process.env.PUSHER_APPID,
+  key: process.env.PUSHER_KEY,
+  secret: process.env.PUSHER_SECRET,
+  cluster: process.env.PUSHER_CLUSTER,
+  useTLS: true,
 });
 
-// Route pour récupérer toutes les rooms d'un utilisateur
-router.get("/rooms/:userId", /* checkToken, */ (req, res) => {
-  const { userId } = req.params;
+// Vérifier que toutes les variables d’environnement sont bien chargées
+if (!process.env.PUSHER_KEY || !process.env.PUSHER_CLUSTER) {
+  console.error("❌ Erreur : Pusher n'est pas correctement configuré.");
+}
 
-  Room.find({ users: userId })
-    .sort({ timestamp: -1 })
-    .then((rooms) => res.json({ result: true, rooms }))
-    .catch(() => res.status(500).json({ result: false, error: "Internal Server Error" }));
-});
-
-// Route pour récupérer tous les messages d'une room
-router.get("/messages/:roomId", /* checkToken, */ (req, res) => {
-  const { roomId } = req.params;
-
-  Message.find({ roomId })
-    .sort({ timestamp: 1 })
-    .then((messages) => res.json({ result: true, messages }))
-    .catch(() => res.status(500).json({ result: false, error: "Internal Server Error" }));
-});
-
-// Route pour envoyer un message dans une room
-router.post("/send-message", /* checkToken, */ (req, res) => {
-  const { roomId, senderId, text } = req.body;
-
-  if (!roomId || !senderId || !text) {
-    res.json({ result: false, error: "Missing fields" });
-    return;
-  }
-
-  const newMessage = new Message({
-    roomId,
-    senderId,
-    text,
+// 📌 Rejoindre le chat
+router.put('/users/:email', (req, res) => {
+  pusher.trigger('chat', 'join', {
+    email: req.params.email,
   });
 
-  newMessage
-    .save()
-    .then((savedMessage) => {
-      return Room.findByIdAndUpdate(roomId, {
-        lastMessage: text,
-        timestamp: new Date(),
-      }).then(() => savedMessage);
-    })
-    .then((savedMessage) => res.json({ result: true, message: savedMessage }))
-    .catch(() => res.status(500).json({ result: false, error: "Internal Server Error" }));
+  res.json({ result: true });
 });
 
-// Route pour supprimer une room et ses messages
-router.delete("/delete-room/:roomId", /* checkToken, */ (req, res) => {
-  const { roomId } = req.params;
+// 📌 Quitter le chat
+router.delete("/users/:email", (req, res) => {
+  pusher.trigger('chat', 'leave', {
+    email: req.params.email,
+  });
 
-  Message.deleteMany({ roomId })
-    .then(() => Room.findByIdAndDelete(roomId))
-    .then(() => res.json({ result: true, message: "Room and messages deleted successfully" }))
-    .catch(() => res.status(500).json({ result: false, error: "Internal Server Error" }));
+  res.json({ result: true });
+});
+
+// 📌 Envoyer un message (Sauvegarde + Pusher)
+router.post('/message', async (req, res) => {
+  try {
+    const { text, email } = req.body;
+
+    // Sauvegarde en base de données
+    const newMessage = new Message({
+      text,
+      senderId: email,
+      timestamp: new Date()
+    });
+
+    await newMessage.save();
+
+    // Envoi via Pusher
+    pusher.trigger('chat', 'message', {
+      text,
+      email,
+      timestamp: newMessage.timestamp
+    });
+
+    res.json({ result: true, message: newMessage });
+  } catch (error) {
+    console.error("Erreur lors de l'envoi du message :", error);
+    res.status(500).json({ result: false, error: error.message });
+  }
+});
+
+// 📌 Récupérer l'historique des messages
+router.get('/messages', async (req, res) => {
+  try {
+    const messages = await Message.find().sort({ timestamp: 1 });
+    res.json(messages);
+  } catch (error) {
+    console.error("Erreur lors de la récupération des messages :", error);
+    res.status(500).json({ error: error.message });
+  }
 });
 
 module.exports = router;
