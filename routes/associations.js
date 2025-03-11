@@ -190,7 +190,15 @@ router.get("/getAssociationByName/:associationName", checkToken, (req, res) => {
   Association.findOne({ name: req.params.associationName })
   .populate("members")
   .then((data) => {
-    res.json({ result: true, data });
+    function checkRole (members, userID, role) {
+      const exist = members.some(member => member.userID === userID && member.role === role);
+      return exist ? "OK" : "NO";
+    }
+    if (checkRole(data.members,req.user.userID, "admin")) {
+      res.json({ result: true });
+    } else {
+      res.json({ result: false })
+    }
   })
   .catch((err) => {
     res.status(500).json({ result: false, error: "Internal Server Error" });
