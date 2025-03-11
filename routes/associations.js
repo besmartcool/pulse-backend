@@ -174,7 +174,8 @@ router.get("/search", (req, res) => {
 
 // ROUTE GET ASSOCIATIONS BY ID
 router.get("/getAssociationsByIds/:token", checkToken, (req, res) => {
-  User.findOne({ token: req.params.token }).then((data) => {
+  User.findOne({ token: req.params.token })
+  .then((data) => {
     Association.find({ _id: { $in: data.associations } })
       .then((data) => {
         res.json({ result: true, data });
