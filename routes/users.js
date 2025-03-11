@@ -22,10 +22,12 @@ router.post("/signup", (req, res) => {
         email: req.body.email,
         password: hash,
         token: uid2(32),
+        firstname: req.body.firstname,
+        lastname: req.body.lastname,
       });
 
       newUser.save().then((user) => {
-        res.json({ result: true, token: user.token, email: user.email });
+        res.json({ result: true, token: user.token, email: user.email, firstname: user.firstname, lastname: user.lastname });
       });
     } else {
       res.json({ result: false, error: "User already exists" });
@@ -41,7 +43,7 @@ router.post("/signin", (req, res) => {
   console.log(req.body);
   User.findOne({ email: req.body.email }).then((data) => {
     if (data && bcrypt.compareSync(req.body.password, data.password)) {
-      res.json({ result: true, token: data.token });
+      res.json({ result: true, token: data.token, email: data.email, firstname: data.firstname, lastname: data.lastname });
     } else {
       res.json({ result: false, error: "User not found or wrong password" });
     }
