@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Pusher = require('pusher');
-const Message = require('../models/message');
+const Message = require('../models/chat');
 
 const pusher = new Pusher({
   appId: process.env.PUSHER_APPID,

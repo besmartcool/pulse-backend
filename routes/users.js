@@ -27,7 +27,13 @@ router.post("/signup", (req, res) => {
       });
 
       newUser.save().then((user) => {
-        res.json({ result: true, token: user.token, email: user.email, firstname: user.firstname, lastname: user.lastname });
+        res.json({
+          result: true,
+          token: user.token,
+          email: user.email,
+          firstname: user.firstname,
+          lastname: user.lastname,
+        });
       });
     } else {
       res.json({ result: false, error: "User already exists" });
@@ -43,7 +49,13 @@ router.post("/signin", (req, res) => {
   console.log(req.body);
   User.findOne({ email: req.body.email }).then((data) => {
     if (data && bcrypt.compareSync(req.body.password, data.password)) {
-      res.json({ result: true, token: data.token, email: data.email, firstname: data.firstname, lastname: data.lastname });
+      res.json({
+        result: true,
+        token: data.token,
+        email: data.email,
+        firstname: data.firstname,
+        lastname: data.lastname,
+      });
     } else {
       res.json({ result: false, error: "User not found or wrong password" });
     }
@@ -72,14 +84,26 @@ router.put("/", (req, res) => {
   });
 });
 
-
 router.post("/getInfos", checkToken, (req, res) => {
-  User.findOne(
-    { token: req.body.token },
-  ).then((data) => {
-    
+  User.findOne({ token: req.body.token }).then((data) => {
     res.json({ result: true, data });
-  })
-})
+  });
+});
+
+router.get("/allUsers", (req, res) => {
+  User.find({}, "email firstname lastname")
+    .then((users) => {
+      if (users.length > 0) {
+        res.json(users);
+      } else {
+        res.json({ result: false, error: "Aucun utilisateur trouvé" });
+      }
+    })
+    .catch((error) => {
+      console.error("❌ Erreur lors de la récupération des utilisateurs :", error);
+      res.status(500).json({ error: "Erreur interne du serveur" });
+    });
+});
+
 
 module.exports = router;
