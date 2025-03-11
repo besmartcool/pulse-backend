@@ -113,8 +113,6 @@ router.get("/search", (req, res) => {
     filter["category"] = category;
   }
 
-  console.log(filter);
-
   Association.find(filter)
     .limit(50)
     .then((data) => {
@@ -184,6 +182,19 @@ router.get("/getAssociationsByIds/:token", checkToken, (req, res) => {
         res.status(500).json({ result: false, error: "Internal Server Error" });
       });
   });
+});
+
+// ROUTE GET ASSOCIATION BY NAME
+router.get("/getAssociationByName/:associationName", checkToken, (req, res) => {
+  console.log("req.params:", req.params)
+  Association.findOne({ name: req.params.associationName })
+  .populate("members")
+  .then((data) => {
+    res.json({ result: true, data });
+  })
+  .catch((err) => {
+    res.status(500).json({ result: false, error: "Internal Server Error" });
+  })
 });
 
 module.exports = router;
