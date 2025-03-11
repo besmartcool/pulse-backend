@@ -1,11 +1,11 @@
 const mongoose = require('mongoose');
 
 const roomSchema = new mongoose.Schema({
-  users: [{ type: mongoose.Schema.Types.ObjectId, ref: 'users', required: true }], // Deux utilisateurs
-  lastMessage: { type: String, default: '' }, // Aperçu du dernier message
-  timestamp: { type: Date, default: Date.now },
+  name: String, // Nom de la room
+  users: [String], // Liste des emails des utilisateurs dans la room
+  createdAt: { type: Date, default: Date.now }
 });
 
-const Room = mongoose.model('rooms', roomSchema);
+const Room = mongoose.model('Room', roomSchema);
 
 module.exports = Room;
