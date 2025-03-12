@@ -4,6 +4,7 @@ const Room = require("../models/rooms");
 const Message = require("../models/chat");
 const Pusher = require("pusher");
 
+// Configuration de Pusher
 const pusher = new Pusher({
   appId: process.env.PUSHER_APPID,
   key: process.env.PUSHER_KEY,
@@ -12,22 +13,12 @@ const pusher = new Pusher({
   useTLS: true,
 });
 
-// 📌 **Créer une room**
-router.post("/", (req, res) => {
-  const { name, users } = req.body;
+// Vérification que Pusher est bien configuré
+if (!process.env.PUSHER_KEY || !process.env.PUSHER_CLUSTER) {
+  console.error("Erreur : Pusher n'est pas correctement configuré.");
+}
 
-  const newRoom = new Room({ name, users });
-
-  newRoom
-    .save()
-    .then((room) => res.json({ result: true, room }))
-    .catch((error) => {
-      console.error("Erreur lors de la création de la room :", error);
-      res.status(500).json({ error: error.message });
-    });
-});
-
-// 📌 **Récupérer les rooms d'un utilisateur**
+// Récupérer toutes les rooms d'un utilisateurs
 router.get("/:email", (req, res) => {
   Room.find({ users: req.params.email })
     .then((rooms) => res.json(rooms))
@@ -37,46 +28,7 @@ router.get("/:email", (req, res) => {
     });
 });
 
-// 📌 **Envoyer un message (Sauvegarde + Pusher)**
-router.post("/message", (req, res) => {
-  const { text, email, roomId } = req.body;
-
-  const newMessage = new Message({
-    text,
-    senderId: email,
-    roomId,
-    timestamp: new Date(),
-  });
-
-  newMessage
-    .save()
-    .then((message) => {
-      pusher.trigger(`chat-${roomId}`, "message", {
-        text: message.text,
-        email: message.senderId,
-        timestamp: message.timestamp,
-      });
-
-      res.json({ result: true, message });
-    })
-    .catch((error) => {
-      console.error("Erreur lors de l'envoi du message :", error);
-      res.status(500).json({ result: false, error: error.message });
-    });
-});
-
-// 📌 **Récupérer les messages d'une room**
-router.get("/messages/:roomId", (req, res) => {
-  Message.find({ roomId: req.params.roomId })
-    .sort({ timestamp: 1 })
-    .then((messages) => res.json(messages))
-    .catch((error) => {
-      console.error("Erreur lors de la récupération des messages :", error);
-      res.status(500).json({ error: error.message });
-    });
-});
-
-// 📌 **Créer une room privée entre 2 utilisateurs**
+// Créer une route entre deux utilisateurs
 router.post("/private", (req, res) => {
   const { user1, user2 } = req.body;
 
