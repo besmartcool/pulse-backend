@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const Pusher = require("pusher");
 const Message = require("../models/chat");
+const Room = require("../models/rooms");
 
 // Configuration de Pusher
 const pusher = new Pusher({
@@ -17,7 +18,7 @@ if (!process.env.PUSHER_KEY || !process.env.PUSHER_CLUSTER) {
   console.error("Erreur : Pusher n'est pas correctement configuré.");
 }
 
-// Envoyer un message (sauvegarder + envoi via Pusher)
+// Envoyer un message (sauvegarder + envoi via Pusher + mise à jour de la room)
 router.post("/message", (req, res) => {
   const { text, email, roomId } = req.body;
 
@@ -31,13 +32,69 @@ router.post("/message", (req, res) => {
   newMessage
     .save()
     .then((message) => {
-      pusher.trigger(`chat-${roomId}`, "chat-message", { // Envoi du message en temps réel avec Pusher
-        text: message.text,
-        senderId: message.senderId,
-        timestamp: message.timestamp,
-      })
+      // 🔥 Récupérer la room pour obtenir tous les utilisateurs
+      Room.findById(roomId)
+        .then((room) => {
+          if (!room) {
+            console.error("Erreur : Room non trouvée.");
+            return res
+              .status(404)
+              .json({ result: false, error: "Room non trouvée" });
+          }
 
-      res.json({ result: true, message });
+          // 🔥 Mettre à jour la room avec le dernier message
+          Room.findByIdAndUpdate(
+            roomId,
+            { lastMessage: text, lastMessageAt: new Date() },
+            { new: true }
+          )
+            .then((updatedRoom) => {
+              if (!updatedRoom) {
+                console.error("Erreur : Impossible de mettre à jour la room.");
+                return res
+                  .status(404)
+                  .json({
+                    result: false,
+                    error: "Impossible de mettre à jour la room",
+                  });
+              }
+
+              // 🔥 Récupérer les emails des utilisateurs de la room
+              const participants = room.users; // Liste des emails des utilisateurs dans la room
+
+              // 🔥 Envoyer l'événement à tous les participants de la room
+              participants.forEach((participantEmail) => {
+                pusher.trigger(`rooms-${participantEmail}`, "room-updated", {
+                  _id: roomId,
+                  lastMessage: text,
+                  lastMessageAt: new Date(),
+                });
+              });
+
+              // 🔥 Envoyer le message dans le chat en temps réel
+              pusher.trigger(`chat-${roomId}`, "chat-message", {
+                text,
+                senderId: email,
+                roomId: roomId,
+                timestamp: new Date(),
+              });
+
+              res.json({
+                result: true,
+                message,
+                room: updatedRoom,
+                lastMessage: text,
+              });
+            })
+            .catch((error) => {
+              console.error("Erreur mise à jour room:", error);
+              res.status(500).json({ result: false, error: error.message });
+            });
+        })
+        .catch((error) => {
+          console.error("Erreur récupération room:", error);
+          res.status(500).json({ result: false, error: error.message });
+        });
     })
     .catch((error) => {
       console.error("Erreur lors de l'envoi du message :", error);
