@@ -1,7 +1,7 @@
 var express = require("express");
 var router = express.Router();
 
-const mongoose = require("mongoose"); // ✅ Ajout de mongoose
+const mongoose = require("mongoose");
 
 require("../models/connection");
 const Association = require("../models/associations");
@@ -101,6 +101,21 @@ router.get("/all", (req, res) => {
       res.json(data);
     });
 });
+
+router.get("/:id/members", (req, res) => {
+  Association.findById(req.params.id)
+    .populate("members.userID")
+    .then((association) => {
+      if (!association) {
+        return res.status(404).json({ message: "Association introuvable" });
+      }
+
+      res.json(association.members);
+    })
+    .catch((error) => res.status(500).json({ error: "Erreur serveur", details: error }));
+});
+
+module.exports = router;
 
 
 // RECHERCHE ASSOCIATION SELON LES FILTRES ACTIVES

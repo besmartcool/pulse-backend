@@ -9,6 +9,7 @@ var usersRouter = require('./routes/users');
 var associationsRouter = require('./routes/associations');
 var chatsRouter = require('./routes/chat');
 var roomsRouter = require('./routes/room');
+var ajoutFictifMembresRouter = require('./routes/ajoutFictifMembres');
 
 var app = express();
 
@@ -23,5 +24,6 @@ app.use('/users', usersRouter);
 app.use('/associations', associationsRouter);
 app.use('/chat', chatsRouter);
 app.use('/rooms', roomsRouter);
+app.use('/fake', ajoutFictifMembresRouter);
 
 module.exports = app;
