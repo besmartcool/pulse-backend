@@ -21,9 +21,11 @@ if (!process.env.PUSHER_KEY || !process.env.PUSHER_CLUSTER) {
 // Récupérer toutes les rooms d'un utilisateurs
 router.get("/:email", (req, res) => {
   Room.find({ users: req.params.email })
-    .then((rooms) => res.json(rooms))
+    .then((rooms) => {
+      res.json(rooms);
+    })
     .catch((error) => {
-      console.error("Erreur lors de la récupération des rooms :", error);
+      console.error("Erreur récupération des rooms :", error);
       res.status(500).json({ error: error.message });
     });
 });
@@ -45,6 +47,9 @@ router.post("/private", (req, res) => {
       });
 
       return newRoom.save().then((savedRoom) => {
+        pusher.trigger(`rooms-${user1}`, "room-updated", savedRoom);
+        pusher.trigger(`rooms-${user2}`, "room-updated", savedRoom);
+
         res.json({ result: true, room: savedRoom });
       });
     })
@@ -53,5 +58,6 @@ router.post("/private", (req, res) => {
       res.status(500).json({ error: error.message });
     });
 });
+
 
 module.exports = router;
