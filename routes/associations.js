@@ -9,6 +9,8 @@ const User = require("../models/users");
 const { checkBody } = require("../modules/checkBody");
 const { checkToken } = require("../middlewares/auth");
 
+
+// ROUTE POUR CREATION D'UNE NOUVELLE ASSOCIATION 
 router.post("/creation", checkToken, (req, res) => {
   //Check of missing mandatory fields
   if (
@@ -80,6 +82,7 @@ router.post("/creation", checkToken, (req, res) => {
   });
 });
 
+
 // ROUTE GET ALEATOIRE ASSOCIATIONS
 router.get("/randomall", (req, res) => {
   let limit = 50;
@@ -88,6 +91,7 @@ router.get("/randomall", (req, res) => {
     res.json({ result: true, data });
   });
 });
+
 
 // ROUTE GET ASSOCIATIONS
 router.get("/all", (req, res) => {
@@ -98,6 +102,8 @@ router.get("/all", (req, res) => {
     });
 });
 
+
+// RECHERCHE ASSOCIATION SELON LES FILTRES ACTIVES
 router.get("/search", (req, res) => {
   const { country, city, category } = req.query;
 
@@ -170,7 +176,8 @@ router.get("/search", (req, res) => {
   }
 }); */
 
-// ROUTE GET ASSOCIATIONS BY ID
+
+// ROUTE POUR AFFICHAGE DES ASSOCIATIONS DE L'UTILISATEUR DANS LE SCREEN ASSO
 router.get("/getAssociationsByIds/:token", checkToken, (req, res) => {
   User.findOne({ token: req.params.token })
   .then((data) => {
@@ -184,9 +191,8 @@ router.get("/getAssociationsByIds/:token", checkToken, (req, res) => {
   });
 });
 
-// ROUTE GET ASSOCIATION BY NAME
-router.get("/getAssociationByName/:associationName", checkToken, (req, res) => {
-  console.log("req.params:", req.params)
+// ROUTE QUI VERIFIE SI L'UTILISATEUR EST ADMIN DE L'ASSOCIATION QU'IL EST EN TRAIN DE VISUALISER
+router.get("/checkAdminStatus/:associationName", checkToken, (req, res) => {
   Association.findOne({ name: req.params.associationName })
   .populate("members")
   .then((data) => {
@@ -204,5 +210,53 @@ router.get("/getAssociationByName/:associationName", checkToken, (req, res) => {
     res.status(500).json({ result: false, error: "Internal Server Error" });
   })
 });
+
+
+// ROUTE QUI RENVOIE LES DONNEES DE L'ASSOCIATION AU FORMULAIRE POUR MISE A JOUR
+router.get("/associationBeingUpdated/:associationName", checkToken, (req, res) => {
+  Association.findOne({ name: req.params.associationName })
+  .populate("members")
+  .then((data) => {
+    data && res.json({ result: true, AssociationData: data });
+    })
+  .catch((err) => {
+    res.status(500).json({ result: false, error: "Internal Server Error" });
+  })
+});
+
+
+// ROUTE POUR MISE A JOURS DES INFOS D'UNE  ASSOCIATION
+router.post("/update", checkToken, (req, res) => {
+
+  //Check of missing mandatory fields
+  if (
+    !checkBody(req.body, [
+      "name",
+      "description",
+      "nationality",
+      "category",
+      "residenceCountry",
+    ])
+  ) {
+    res.json({ result: false, error: "Missing or empty fields" });
+    return;
+  }
+
+
+  //Données à envoyer à la BDD, sans l'id de l'asso
+  const updatedFields = req.body;
+  delete updatedFields._id
+  // console.log("données pour modif", updatedFields)
+
+  // Mise à jour des infos de l'asso
+  Association.updateOne(
+    { _id: req.body._id },
+    { $set: updatedFields }
+  ).then((data) => {
+    console.log(data)
+    res.json({ result: false, error: "Association already exists" });
+    })
+});
+
 
 module.exports = router;
