@@ -226,9 +226,8 @@ router.get("/associationBeingUpdated/:associationName", checkToken, (req, res) =
 
 
 // ROUTE POUR MISE A JOURS DES INFOS D'UNE  ASSOCIATION
-router.post("/update", checkToken, (req, res) => {
-
-  //Check of missing mandatory fields
+router.post("/update", checkToken, async (req, res) => {
+  // Vérification des champs obligatoires
   if (
     !checkBody(req.body, [
       "name",
@@ -238,23 +237,26 @@ router.post("/update", checkToken, (req, res) => {
       "residenceCountry",
     ])
   ) {
-    res.json({ result: false, error: "Missing or empty fields" });
-    return;
+    return res.json({ result: false, error: "Missing or empty fields" });
   }
 
+  // Conversion du req.body._id en ObjectId pour la recherche (sinon MongoDB ne reconnaît pas)
+  const associationId = new mongoose.Types.ObjectId(req.body._id);
 
-  //Données à envoyer à la BDD, sans l'id de l'asso
+  // Préparation des champs à mettre à jour
   const updatedFields = req.body;
-  delete updatedFields._id
-  // console.log("données pour modif", updatedFields)
+  delete updatedFields._id;
 
-  // Mise à jour des infos de l'asso
   Association.updateOne(
-    { _id: req.body._id },
-    { $set: updatedFields }
-  ).then((data) => {
-    console.log(data)
-    res.json({ result: false, error: "Association already exists" });
+      { _id: associationId },
+      { $set: updatedFields }
+    )
+    .then((result) => {
+      if (result.modifiedCount > 0) {
+        return res.json({ result: true, message: "Association updated successfully" });
+      } else {
+        return res.json({ result: false, error: "No changes made or association not found" });
+      }
     })
 });
 
