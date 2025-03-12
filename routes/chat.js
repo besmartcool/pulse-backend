@@ -17,7 +17,7 @@ if (!process.env.PUSHER_KEY || !process.env.PUSHER_CLUSTER) {
   console.error("Erreur : Pusher n'est pas correctement configuré.");
 }
 
-// // Envoyer un message (sauvegarder + envoi via Pusher)
+// Envoyer un message (sauvegarder + envoi via Pusher)
 router.post("/message", (req, res) => {
   const { text, email, roomId } = req.body;
 

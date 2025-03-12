@@ -45,6 +45,9 @@ router.post("/private", (req, res) => {
       });
 
       return newRoom.save().then((savedRoom) => {
+        pusher.trigger(`rooms-${user1}`, "room-updated", savedRoom);
+        pusher.trigger(`rooms-${user2}`, "room-updated", savedRoom);
+
         res.json({ result: true, room: savedRoom });
       });
     })
@@ -53,5 +56,6 @@ router.post("/private", (req, res) => {
       res.status(500).json({ error: error.message });
     });
 });
+
 
 module.exports = router;
