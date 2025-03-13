@@ -120,12 +120,14 @@ module.exports = router;
 
 // RECHERCHE ASSOCIATION SELON LES FILTRES ACTIVES
 router.get("/search", (req, res) => {
-  const { country, city, category } = req.query;
+  const { originCountry, destinationCountry, city, category } = req.query; //modif "originCountry" et "destinationCountry"
 
   let filter = {};
-
-  if (country) {
-    filter["address.country"] = country.toUpperCase();
+  if (originCountry) {
+    filter["nationality"] = originCountry.toUpperCase(); //modif "originCountry" et "destinationCountry"
+  }
+  if (destinationCountry) {
+    filter["address.country"] = destinationCountry.toUpperCase();//modif "originCountry" et "destinationCountry"
   }
   if (city) {
     filter["address.city"] = city.toUpperCase();
@@ -134,6 +136,7 @@ router.get("/search", (req, res) => {
     filter["category"] = category;
   }
 
+  console.log("vérification filtres", filter)
   Association.find(filter)
     .limit(50)
     .then((data) => {
