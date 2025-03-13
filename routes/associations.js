@@ -144,53 +144,28 @@ router.get("/search", (req, res) => {
     });
 });
 
-/* router.post("/addMembers", async (req, res) => {
-  try {
-
-    const associations = await Association.find();
-
-    if (!associations.length) {
-      return res.json({ result: false, message: "No associations found" });
-    }
-
-    const uniqueRoles = ["Président(e)", "Vice-président(e)", "Secrétaire", "Trésorier(e)"];
-    const names = [
-      "Alice Dupont", "Jean Martin", "Sophie Bernard", "Thomas Lefevre",
-      "Emma Moreau", "Lucas Dubois", "Camille Lambert", "Nathan Rousseau",
-      "Chloé Vincent", "Léo Girard"
-    ];
-
-    const generateMember = (name, role) => {
-      console.log(`Création du membre : ${name} avec le rôle ${role}`);
-      return {
-        userID: new mongoose.Types.ObjectId(),
-        name: name,
-        role: role,
-      };
-    };
-
-    for (let association of associations) {
-      let members = [];
-
-      for (let i = 0; i < uniqueRoles.length; i++) {
-        members.push(generateMember(names[i], uniqueRoles[i]));
+// Retrouver le secretaired e chaque asso
+router.get("/:associationId/secretary", (req, res) => {
+  Association.findById(req.params.associationId)
+    .populate("members.userID")
+    .then((association) => {
+      if (!association) {
+        return res.status(404).json({ result: false, error: "Association non trouvée" });
       }
 
-      for (let i = uniqueRoles.length; i < names.length; i++) {
-        members.push(generateMember(names[i], "Membre actif"));
+      const secretary = association.members.find(member => member.role === "Secrétaire");
+
+      if (!secretary || !secretary.userID) {
+        return res.status(404).json({ result: false, error: "Aucun secrétaire trouvé" });
       }
 
-      association.members = [...association.members, ...members];
-      await association.save();
-    }
-
-    res.json({ result: true, message: "Members added successfully to all associations" });
-  } catch (error) {
-    console.error("Error adding members to associations:", error);
-    res.status(500).json({ result: false, error: error.message });
-  }
-}); */
-
+      res.json({ result: true, secretary: secretary.userID });
+    })
+    .catch((error) => {
+      console.error("Erreur lors de la récupération du secrétaire :", error);
+      res.status(500).json({ result: false, error: error.message });
+    });
+});
 
 // ROUTE POUR AFFICHAGE DES ASSOCIATIONS DE L'UTILISATEUR DANS LE SCREEN ASSO
 router.get("/getAssociationsByIds/:token", checkToken, (req, res) => {

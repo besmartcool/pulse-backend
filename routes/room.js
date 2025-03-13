@@ -59,29 +59,4 @@ router.post("/private", (req, res) => {
     });
 });
 
-// Retrouver le secretaired e chaque asso
-router.get("/:associationId/secretary", (req, res) => {
-  Association.findById(req.params.associationId)
-    .populate("members.userID")
-    .then((association) => {
-      if (!association) {
-        return res.status(404).json({ result: false, error: "Association non trouvée" });
-      }
-
-      const secretary = association.members.find(member => member.role === "Secrétaire");
-
-      if (!secretary || !secretary.userID) {
-        return res.status(404).json({ result: false, error: "Aucun secrétaire trouvé" });
-      }
-
-      res.json({ result: true, secretary: secretary.userID });
-    })
-    .catch((error) => {
-      console.error("Erreur lors de la récupération du secrétaire :", error);
-      res.status(500).json({ result: false, error: error.message });
-    });
-});
-
-
-
 module.exports = router;
