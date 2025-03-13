@@ -9,8 +9,7 @@ const User = require("../models/users");
 const { checkBody } = require("../modules/checkBody");
 const { checkToken } = require("../middlewares/auth");
 
-
-// ROUTE POUR CREATION D'UNE NOUVELLE ASSOCIATION 
+// ROUTE POUR CREATION D'UNE NOUVELLE ASSOCIATION
 router.post("/creation", checkToken, (req, res) => {
   //Check of missing mandatory fields
   if (
@@ -82,7 +81,6 @@ router.post("/creation", checkToken, (req, res) => {
   });
 });
 
-
 // ROUTE GET ALEATOIRE ASSOCIATIONS
 router.get("/randomall", (req, res) => {
   let limit = 50;
@@ -91,7 +89,6 @@ router.get("/randomall", (req, res) => {
     res.json({ result: true, data });
   });
 });
-
 
 // ROUTE GET ASSOCIATIONS
 router.get("/all", (req, res) => {
@@ -112,31 +109,31 @@ router.get("/:id/members", (req, res) => {
 
       res.json(association.members);
     })
-    .catch((error) => res.status(500).json({ error: "Erreur serveur", details: error }));
+    .catch((error) =>
+      res.status(500).json({ error: "Erreur serveur", details: error })
+    );
 });
 
 module.exports = router;
 
-
 // RECHERCHE ASSOCIATION SELON LES FILTRES ACTIVES
 router.get("/search", (req, res) => {
-  const { originCountry, destinationCountry, city, category } = req.query; //modif "originCountry" et "destinationCountry"
+  const { originCountry, destinationCountry, city, category } = req.query;
 
   let filter = {};
   if (originCountry) {
-    filter["nationality"] = originCountry.toUpperCase(); //modif "originCountry" et "destinationCountry"
+    filter["nationality"] = originCountry;
   }
   if (destinationCountry) {
-    filter["address.country"] = destinationCountry.toUpperCase();//modif "originCountry" et "destinationCountry"
+    filter["address.country"] = destinationCountry.toUpperCase(); // 🔥 Correction ici
   }
   if (city) {
     filter["address.city"] = city.toUpperCase();
   }
   if (category) {
-    filter["category"] = category;
+    filter["category"] = new RegExp(category, "i");
   }
 
-  console.log("vérification filtres", filter)
   Association.find(filter)
     .limit(50)
     .then((data) => {
@@ -153,13 +150,19 @@ router.get("/:associationId/secretary", (req, res) => {
     .populate("members.userID")
     .then((association) => {
       if (!association) {
-        return res.status(404).json({ result: false, error: "Association non trouvée" });
+        return res
+          .status(404)
+          .json({ result: false, error: "Association non trouvée" });
       }
 
-      const secretary = association.members.find(member => member.role === "Secrétaire");
+      const secretary = association.members.find(
+        (member) => member.role === "Secrétaire"
+      );
 
       if (!secretary || !secretary.userID) {
-        return res.status(404).json({ result: false, error: "Aucun secrétaire trouvé" });
+        return res
+          .status(404)
+          .json({ result: false, error: "Aucun secrétaire trouvé" });
       }
 
       res.json({ result: true, secretary: secretary.userID });
@@ -172,8 +175,7 @@ router.get("/:associationId/secretary", (req, res) => {
 
 // ROUTE POUR AFFICHAGE DES ASSOCIATIONS DE L'UTILISATEUR DANS LE SCREEN ASSO
 router.get("/getAssociationsByIds/:token", checkToken, (req, res) => {
-  User.findOne({ token: req.params.token })
-  .then((data) => {
+  User.findOne({ token: req.params.token }).then((data) => {
     Association.find({ _id: { $in: data.associations } })
       .then((data) => {
         res.json({ result: true, data });
@@ -187,36 +189,40 @@ router.get("/getAssociationsByIds/:token", checkToken, (req, res) => {
 // ROUTE QUI VERIFIE SI L'UTILISATEUR EST ADMIN DE L'ASSOCIATION QU'IL EST EN TRAIN DE VISUALISER
 router.get("/checkAdminStatus/:associationName", checkToken, (req, res) => {
   Association.findOne({ name: req.params.associationName })
-  .populate("members")
-  .then((data) => {
-    function checkRole (members, userID, role) {
-      const exist = members.some(member => member.userID === userID && member.role === role);
-      return exist ? "OK" : "NO";
-    }
-    if (checkRole(data.members,req.user.userID, "admin")) {
-      res.json({ result: true });
-    } else {
-      res.json({ result: false })
-    }
-  })
-  .catch((err) => {
-    res.status(500).json({ result: false, error: "Internal Server Error" });
-  })
+    .populate("members")
+    .then((data) => {
+      function checkRole(members, userID, role) {
+        const exist = members.some(
+          (member) => member.userID === userID && member.role === role
+        );
+        return exist ? "OK" : "NO";
+      }
+      if (checkRole(data.members, req.user.userID, "admin")) {
+        res.json({ result: true });
+      } else {
+        res.json({ result: false });
+      }
+    })
+    .catch((err) => {
+      res.status(500).json({ result: false, error: "Internal Server Error" });
+    });
 });
-
 
 // ROUTE QUI RENVOIE LES DONNEES DE L'ASSOCIATION AU FORMULAIRE POUR MISE A JOUR
-router.get("/associationBeingUpdated/:associationName", checkToken, (req, res) => {
-  Association.findOne({ name: req.params.associationName })
-  .populate("members")
-  .then((data) => {
-    data && res.json({ result: true, AssociationData: data });
-    })
-  .catch((err) => {
-    res.status(500).json({ result: false, error: "Internal Server Error" });
-  })
-});
-
+router.get(
+  "/associationBeingUpdated/:associationName",
+  checkToken,
+  (req, res) => {
+    Association.findOne({ name: req.params.associationName })
+      .populate("members")
+      .then((data) => {
+        data && res.json({ result: true, AssociationData: data });
+      })
+      .catch((err) => {
+        res.status(500).json({ result: false, error: "Internal Server Error" });
+      });
+  }
+);
 
 // ROUTE POUR MISE A JOURS DES INFOS D'UNE  ASSOCIATION
 router.post("/update", checkToken, async (req, res) => {
@@ -240,18 +246,21 @@ router.post("/update", checkToken, async (req, res) => {
   const updatedFields = req.body;
   delete updatedFields._id;
 
-  Association.updateOne(
-      { _id: associationId },
-      { $set: updatedFields }
-    )
-    .then((result) => {
+  Association.updateOne({ _id: associationId }, { $set: updatedFields }).then(
+    (result) => {
       if (result.modifiedCount > 0) {
-        return res.json({ result: true, message: "Association updated successfully" });
+        return res.json({
+          result: true,
+          message: "Association updated successfully",
+        });
       } else {
-        return res.json({ result: false, error: "No changes made or association not found" });
+        return res.json({
+          result: false,
+          error: "No changes made or association not found",
+        });
       }
-    })
+    }
+  );
 });
-
 
 module.exports = router;
