@@ -10,11 +10,12 @@ const roles = ["Président", "Secrétaire", "Membre actif", "Membre actif"];
 const fakeNames = ["Jean", "Marie", "Paul", "Sophie", "Pierre", "Lucie"];
 const fakeLastNames = ["Dupont", "Durand", "Martin", "Lefevre", "Morel"];
 
+const fetch = require("node-fetch");
+
 // Fonction pour générer un utilisateur aléatoire
 function generateRandomUser() {
   const firstName = fakeNames[Math.floor(Math.random() * fakeNames.length)];
-  const lastName =
-    fakeLastNames[Math.floor(Math.random() * fakeLastNames.length)];
+  const lastName = fakeLastNames[Math.floor(Math.random() * fakeLastNames.length)];
   const email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}@asso.com`;
 
   return { firstname: firstName, lastname: lastName, email };
@@ -32,49 +33,54 @@ router.post("/generate-fake-members", async (req, res) => {
     let updatedCount = 0;
 
     for (let asso of associations) {
-      // 🔹 Vérifier et corriger les erreurs sur les champs email et residenceCountry
       if (!asso.email || Array.isArray(asso.email)) {
-        asso.email = ""; // Forcer une valeur correcte
+        asso.email = "";
       }
 
       if (!asso.residenceCountry) {
-        asso.residenceCountry = "Non spécifié"; // Donner une valeur par défaut
+        asso.residenceCountry = "Non spécifié";
       }
 
-      // 🔹 Vérifier si l'association a déjà au moins 4 membres
       if (asso.members.length < 4) {
         const newMembers = [];
-
-        // Vérifier quels rôles sont déjà présents
         const existingRoles = asso.members.map((m) => m.role);
-        const missingRoles = roles.filter(
-          (role) => !existingRoles.includes(role)
-        );
+        const missingRoles = roles.filter((role) => !existingRoles.includes(role));
 
         for (let role of missingRoles) {
           const newUserInfo = generateRandomUser();
 
+          // 🔹 Vérifier si l'utilisateur existe déjà dans la base
           let user = await User.findOne({ email: newUserInfo.email });
 
           if (!user) {
-            user = new User({
-              firstname: newUserInfo.firstname,
-              lastname: newUserInfo.lastname,
-              email: newUserInfo.email,
-              password: "hashedpassword", // ⚠️ Remplacer par un vrai hash
+            // 🔹 Appel à `/signup` pour créer l'utilisateur
+            const response = await fetch("http://localhost:3000/users/signup", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                email: newUserInfo.email,
+                password: "hashedpassword",
+                firstname: newUserInfo.firstname,
+                lastname: newUserInfo.lastname,
+              }),
             });
 
-            await user.save();
+            const result = await response.json();
+
+            if (result.result) {
+              user = await User.findOne({ email: newUserInfo.email }); // On récupère l'utilisateur fraîchement créé
+            }
           }
 
-          newMembers.push({
-            name: `${user.firstname} ${user.lastname}`,
-            userID: user._id,
-            role: role,
-          });
+          if (user) {
+            newMembers.push({
+              name: `${user.firstname} ${user.lastname}`,
+              userID: user._id, // 📌 Utiliser l'ID existant
+              role: role,
+            });
+          }
         }
 
-        // 🔹 Ajouter les nouveaux membres à l'association
         if (newMembers.length > 0) {
           asso.members = [...asso.members, ...newMembers];
           await asso.save();

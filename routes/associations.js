@@ -197,7 +197,7 @@ router.get("/checkAdminStatus/:associationName", checkToken, (req, res) => {
         );
         return exist ? "OK" : "NO";
       }
-      if (checkRole(data.members, req.user.userID, "admin")) {
+      if (checkRole(data.members, req.user.userID, "Secrétaire")) {
         res.json({ result: true });
       } else {
         res.json({ result: false });
