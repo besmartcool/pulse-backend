@@ -22,13 +22,13 @@ const memberSchema = mongoose.Schema({
 
 const associationSchema = mongoose.Schema({
     name: { type: String, required: true },
-    nationality: { type: String, required: true }, // ✅ Correction du champ "nationalities" → "nationality"
+    nationality: { type: String, required: true },
     languages: [String],
     interventionZone: [String],
     residenceCountry: { type: String, required: true },
     description: { type: String, required: true },
-    category: { type: String, required: true }, // ✅ Correction du champ "categories" → "categorie"
-    categorieNumber: Number, // ✅ Ajout de "categorieNumber"
+    category: { type: String, required: true },
+    categorieNumber: Number,
     lastDeclarationDate: String,
     creationDate: String,
     legalNumber: String,
@@ -38,7 +38,7 @@ const associationSchema = mongoose.Schema({
     address: addressSchema,
     phone: [String],
     email: { type: String, trim: true },
-    members: [memberSchema], // ✅ Correction de la structure des membres
+    members: [memberSchema],
     socialNetworks: [socialNetworkSchema],
   });
 
