@@ -61,7 +61,7 @@ router.post("/signin", (req, res) => {
   });
 });
 
-router.put("/", (req, res) => {
+router.put("/", checkToken, (req, res) => {
   console.log(req.body.token);
   User.updateOne(
     { token: req.body.token },
@@ -90,7 +90,7 @@ router.post("/getInfos", checkToken, (req, res) => {
 });
 
 router.get("/allUsers", (req, res) => {
-  User.find({}, "email firstname lastname")
+  User.find({}, "email firstname lastname") // projection Mongoose, permet de ne récupérer que les champs email, firstname et lastname
     .then((users) => {
       if (users.length > 0) {
         res.json(users);
