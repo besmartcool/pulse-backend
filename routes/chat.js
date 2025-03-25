@@ -22,7 +22,7 @@ if (!process.env.PUSHER_KEY || !process.env.PUSHER_CLUSTER) {
 router.post("/message", (req, res) => {
   const { text, email, roomId } = req.body;
 
-  const newMessage = new Message({
+  const newMessage = new Message({ // création du message
     text,
     senderId: email,
     roomId,
@@ -32,7 +32,7 @@ router.post("/message", (req, res) => {
   newMessage
     .save()
     .then((message) => {
-      // 🔥 Récupérer la room pour obtenir tous les utilisateurs
+      // on récupère la room pour obtenir tous les utilisateurs de cette room
       Room.findById(roomId)
         .then((room) => {
           if (!room) {
@@ -42,7 +42,7 @@ router.post("/message", (req, res) => {
               .json({ result: false, error: "Room non trouvée" });
           }
 
-          // 🔥 Mettre à jour la room avec le dernier message
+          // on met à jour la room avec le dernier message
           Room.findByIdAndUpdate(
             roomId,
             { lastMessage: text, lastMessageAt: new Date() },
@@ -59,10 +59,10 @@ router.post("/message", (req, res) => {
                   });
               }
 
-              // 🔥 Récupérer les emails des utilisateurs de la room
+              // on récupère les emails des utilisateurs de la room
               const participants = room.users; // Liste des emails des utilisateurs dans la room
 
-              // 🔥 Envoyer l'événement à tous les participants de la room
+              // on envoie l'événement à tous les participants de la room, permet de mettre à jour chez tout le monde
               participants.forEach((participantEmail) => {
                 pusher.trigger(`rooms-${participantEmail}`, "room-updated", {
                   _id: roomId,
@@ -71,7 +71,7 @@ router.post("/message", (req, res) => {
                 });
               });
 
-              // 🔥 Envoyer le message dans le chat en temps réel
+              // on envoie le message dans le chat en temps réel
               pusher.trigger(`chat-${roomId}`, "chat-message", {
                 text,
                 senderId: email,
@@ -102,7 +102,7 @@ router.post("/message", (req, res) => {
     });
 });
 
-// Récupérer l'historique des messages d'une conversation
+// On souhaite récupérer l'historique des messages d'une conversation pour les afficher
 router.get("/messages/:roomId", (req, res) => {
   Message.find({ roomId: req.params.roomId })
     .sort({ timestamp: 1 }) // Tri du plus ancien au plus récent

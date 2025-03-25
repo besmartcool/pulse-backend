@@ -91,7 +91,7 @@ router.get("/randomall", (req, res) => {
 });
 
 // ROUTE GET ASSOCIATIONS
-router.get("/all", (req, res) => {
+router.get("/all", (req, res) => { // renvoie toutes les assos
   Association.find()
     .limit(50)
     .then((data) => {
@@ -117,7 +117,7 @@ router.get("/:id/members", (req, res) => {
 
 // RECHERCHE ASSOCIATION SELON LES FILTRES ACTIVES
 router.get("/search", (req, res) => {
-  const { originCountry, destinationCountry, city, category } = req.query;
+  const { originCountry, destinationCountry, city, category } = req.query; // on récupère les filtres
 
   let filter = {}; // on crée un objet vide
   if (originCountry) { // si origin country existe

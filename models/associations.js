@@ -14,8 +14,8 @@ const socialNetworkSchema = mongoose.Schema({
 })
 
 const memberSchema = mongoose.Schema({
-    name: String,
     userID: [{ type: mongoose.Schema.Types.ObjectId, ref: 'users' }],
+    name: String,
     role: String,
 })
 

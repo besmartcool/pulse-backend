@@ -32,15 +32,15 @@ router.get("/:email", (req, res) => {
 
 // Créer une route entre deux utilisateurs
 router.post("/private", (req, res) => {
-  const { user1, user2 } = req.body;
+  const { user1, user2 } = req.body; // les deux users concernés
 
-  Room.findOne({ users: { $all: [user1, user2] } })
+  Room.findOne({ users: { $all: [user1, user2] } }) // on recherche si il existe déjà une room avec les deux users
     .then((room) => {
-      if (room) {
+      if (room) { // si oui alors on la renvoie
         return res.json({ result: true, room });
       }
 
-      // Création d'une nouvelle room si elle n'existe pas
+      // sinon on crée une nouvelle room si elle n'existe pas
       const newRoom = new Room({
         name: `${user2}`,
         users: [user1, user2],
