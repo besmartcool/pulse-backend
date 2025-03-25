@@ -1,5 +1,6 @@
 const User = require('../models/users');
 
+// MIDDLEWARE : intercepte une requete vers l'API, la traite, et valide ou non son envoi/reception // se positionne entre le back et le front
 const checkToken = (req, res, next) => {
     let token = req.headers.authorization;
 
