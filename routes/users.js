@@ -99,7 +99,7 @@ router.get("/allUsers", (req, res) => {
       }
     })
     .catch((error) => {
-      console.error("❌ Erreur lors de la récupération des utilisateurs :", error);
+      console.error("Erreur lors de la récupération des utilisateurs :", error);
       res.status(500).json({ error: "Erreur interne du serveur" });
     });
 });
