@@ -188,25 +188,32 @@ router.get("/getAssociationsByIds/:token", checkToken, (req, res) => {
 
 // ROUTE QUI VERIFIE SI L'UTILISATEUR EST ADMIN DE L'ASSOCIATION QU'IL EST EN TRAIN DE VISUALISER
 router.get("/checkAdminStatus/:associationName", checkToken, (req, res) => {
-  Association.findOne({ name: req.params.associationName }) // on recherche l'asso par son nom
-    .populate("members") // on obtient toutes les infos des membres
+  Association.findOne({ name: req.params.associationName })
+    .populate("members")
     .then((data) => {
-      function checkRole(members, userID, role) { // fonction pou savoir si un membre existe avec le bon userId et le bon role
-        const exist = members.some(
-          (member) => member.userID === userID && member.role === role
-        );
-        return exist ? true : false ;
+      function checkRole(members, userID, roles) {
+        return members.some((member) => {
+          const hasUserID =
+            Array.isArray(member.userID)
+              ? member.userID.some((id) => id.toString() === userID.toString())
+              : member.userID.toString() === userID.toString();
+
+          return hasUserID && roles.includes(member.role);
+        });
       }
-      if (checkRole(data.members, req.user.userID, "Secrétaire")) {
+
+      if (checkRole(data.members, req.user._id, ["Secrétaire", "admin"])) {
         res.json({ result: true });
       } else {
         res.json({ result: false });
       }
     })
     .catch((err) => {
+      console.error("Erreur :", err);
       res.status(500).json({ result: false, error: "Internal Server Error" });
     });
 });
+
 
 // ROUTE QUI RENVOIE LES DONNEES DE L'ASSOCIATION AU FORMULAIRE POUR MISE A JOUR
 router.get(
